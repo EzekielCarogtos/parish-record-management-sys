@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>New Record</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <style>
+        :root {
+            --sidebar-width: 260px;
+            --primary-blue: #0d6efd;
+            --bg-light: #f8f9fa;
+        }
+
+        body {
+            background-color: var(--bg-light);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        /* Sidebar Styling */
+        #sidebar {
+            width: var(--sidebar-width);
+            height: 100vh;
+            position: fixed;
+            background: white;
+            border-right: 1px solid #dee2e6;
+            padding: 1.5rem 1rem;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .nav-link {
+            color: #6c757d;
+            border-radius: 8px;
+            margin-bottom: 5px;
+            padding: 10px 15px;
+            transition: all 0.2s;
+            text-decoration: none;
+        }
+
+        .nav-link:hover, .nav-link.active {
+            background-color: #eef4ff;
+            color: var(--primary-blue);
+        }
+
+        .nav-link.active { font-weight: 600; }
+
+        /* Content Area */
+        #main-content {
+            margin-left: var(--sidebar-width);
+            padding: 2rem;
+        }
+
+        .card {
+            border: none;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+
+        .stat-card {
+            padding: 1.5rem;
+        }
+
+        .stat-number {
+            font-size: 2rem;
+            font-weight: bold;
+        }
+
+        .badge-digitized { background-color: #e6f7ef; color: #198754; }
+        .badge-verified { background-color: #f0f0ff; color: #6f42c1; }
+
+        .hidden { display: none; }
+    </style>
+</head>
+<body>
+    <nav id="sidebar">
+        <div class="d-flex align-items-center mb-4 px-2">
+            <div class="bg-primary text-white rounded p-2 me-2">
+                <i class="bi bi-church fs-4"></i>
+            </div>
+            <div>
+                <h6 class="mb-0 fw-bold">Parish Records</h6>
+                <small class="text-muted">Management System</small>
+            </div>
+        </div>
+
+        <div class="nav flex-column mb-auto">
+            <a href="home.html" class="nav-link">
+                <i class="bi bi-grid-fill me-2"></i> Dashboard
+            </a>
+            <a href="record.html" class="nav-link">
+                <i class="bi bi-journal-text me-2"></i> Records
+            </a>
+            <a href="new_record.html" class="nav-link active">
+                <i class="bi bi-plus-square me-2"></i> New Record
+            </a>
+            <a href="cert_req.html" class="nav-link">
+                <i class="bi bi-file-earmark-check me-2"></i> Certificate Request
+            </a>
+            <a href="cert_hist.html" class="nav-link">
+                <i class="bi bi-clock-history me-2"></i> Certificate History
+            </a>
+        </div>
+
+        <div class="mt-auto border-top pt-3">
+            <div class="d-flex align-items-center mb-3 px-2">
+                <div class="bg-light rounded-circle p-2 me-2">
+                    <i class="bi bi-person"></i>
+                </div>
+                <div>
+                    <div class="small fw-bold">Parish Secretary</div>
+                    <div class="text-muted" style="font-size: 0.75rem;">Secretary</div>
+                </div>
+            </div>
+             <a href="login.html" class="btn btn-outline-danger w-100 btn-sm" style="text-decoration: none;">
+                <i class="bi bi-box-arrow-left me-1"></i> Sign Out
+            </a>
+        </div>
+    </nav>
+
+    <main id="main-content">
+
+    <section id="new-record">
+    <div class="card p-4 mx-auto" style="max-width: 1000px;">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h4 class="mb-0"><i class="bi bi-plus-circle me-2"></i>Add New Sacramental Record</h4>
+            <div style="width: 250px;">
+                <label class="small fw-bold text-muted">Select Sacrament Type</label>
+                <select class="form-select form-select-lg" id="sacramentSelector" onchange="toggleForm(this.value)">
+                    <option value="none">-- Choose Type --</option>
+                    <option value="baptism">Baptism (Binyag)</option>
+                    <option value="confirmation">Confirmation (Kumpil)</option>
+                    <option value="marriage">Marriage (Kasal)</option>
+                    <option value="funeral">Funeral (Libing)</option>
+                </select>
+            </div>
+        </div>
+
+        <form id="sacramentForm" class="hidden">
+            <hr>
+            
+            <div id="form-baptism" class="sacrament-subform hidden">
+    <div class="row g-3">
+        <div class="col-md-6"><label class="form-label small fw-bold">Date & Time of Baptism</label><input type="datetime-local" class="form-control"></div>
+        <div class="col-md-6"><label class="form-label small fw-bold">Date & Time of Seminar</label><input type="datetime-local" class="form-control"></div>
+        
+        <div class="col-md-4"><label class="form-label small fw-bold">First Name</label><input type="text" class="form-control"></div>
+        <div class="col-md-4"><label class="form-label small fw-bold">Middle Name</label><input type="text" class="form-control"></div>
+        <div class="col-md-4"><label class="form-label small fw-bold">Last Name</label><input type="text" class="form-control"></div>
+        
+        <div class="col-md-6"><label class="form-label small fw-bold">Date of Birth</label><input type="date" class="form-control"></div>
+        <div class="col-md-6"><label class="form-label small fw-bold">Place of Birth</label><input type="text" class="form-control"></div>
+        <div class="col-md-12"><label class="form-label small fw-bold">Address (Tirahan)</label><input type="text" class="form-control"></div>
+
+        <h6 class="mt-4 border-bottom pb-2 text-primary">Parents Information</h6>
+        <div class="col-md-6">
+            <label class="form-label small fw-bold">Father's Full Name</label>
+            <input type="text" class="form-control mb-2" placeholder="Full Name">
+            <div class="row g-2">
+                <div class="col-6"><input type="text" class="form-control form-control-sm" placeholder="Occupation"></div>
+                <div class="col-6"><input type="text" class="form-control form-control-sm" placeholder="Religion"></div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <label class="form-label small fw-bold">Mother's Maiden Name</label>
+            <input type="text" class="form-control mb-2" placeholder="Full Name">
+            <div class="row g-2">
+                <div class="col-6"><input type="text" class="form-control form-control-sm" placeholder="Occupation"></div>
+                <div class="col-6"><input type="text" class="form-control form-control-sm" placeholder="Religion"></div>
+            </div>
+        </div>
+        
+        <div class="col-md-12">
+            <label class="form-label small fw-bold">Place of Marriage (Saan Ikinasal)</label>
+            <div class="d-flex gap-4 mt-1">
+                <div class="form-check"><input class="form-check-input" type="radio" name="p-marriage"> <label class="form-check-label small">Catholic</label></div>
+                <div class="form-check"><input class="form-check-input" type="radio" name="p-marriage"> <label class="form-check-label small">Civil</label></div>
+                <div class="form-check"><input class="form-check-input" type="radio" name="p-marriage"> <label class="form-check-label small">Other Religion</label></div>
+                <div class="form-check"><input class="form-check-input" type="radio" name="p-marriage"> <label class="form-check-label small">Not Married</label></div>
+            </div>
+        </div>
+
+        <h6 class="mt-4 border-bottom pb-2 text-primary">Godparents (Ninong / Ninang)</h6>
+        <div class="table-responsive">
+            <table class="table table-sm table-bordered">
+                <thead class="bg-light">
+                    <tr>
+                        <th style="font-size: 0.75rem;">Name</th>
+                        <th style="font-size: 0.75rem; width: 80px;">Age</th>
+                        <th style="font-size: 0.75rem;">Address</th>
+                        <th style="font-size: 0.75rem;">Religion</th>
+                    </tr>
+                </thead>
+                <tbody id="sponsorTableBody">
+                    <tr>
+                        <td><input type="text" class="form-control form-control-sm border-0"></td>
+                        <td><input type="number" class="form-control form-control-sm border-0"></td>
+                        <td><input type="text" class="form-control form-control-sm border-0"></td>
+                        <td><input type="text" class="form-control form-control-sm border-0"></td>
+                    </tr>
+                </tbody>
+            </table>
+            <button type="button" class="btn btn-sm btn-outline-primary" onclick="addSponsorRow()">+ Add Sponsor</button>
+        </div>
+    </div>
+</div>
+
+            <div id="form-confirmation" class="sacrament-subform hidden">
+                <div class="row g-3">
+                    <div class="col-md-12"><label class="form-label small fw-bold">Full Name</label><input type="text" class="form-control"></div>
+                    <div class="col-md-4"><label class="form-label small fw-bold">Date of Birth</label><input type="date" class="form-control"></div>
+                    <div class="col-md-2"><label class="form-label small fw-bold">Age</label><input type="number" class="form-control"></div>
+                    <div class="col-md-6"><label class="form-label small fw-bold">Baptized At (Parish)</label><input type="text" class="form-control"></div>
+                    <div class="col-md-6"><label class="form-label small fw-bold">Father's Name</label><input type="text" class="form-control"></div>
+                    <div class="col-md-6"><label class="form-label small fw-bold">Mother's Name</label><input type="text" class="form-control"></div>
+                </div>
+            </div>
+
+            <div id="form-marriage" class="sacrament-subform hidden">
+    <div class="row g-3">
+        <div class="col-md-6 p-3 border rounded-start bg-light">
+            <h6 class="fw-bold text-primary">Groom's Details</h6>
+            <label class="form-label small">Full Name</label><input type="text" class="form-control mb-2">
+            <label class="form-label small">Address</label><textarea class="form-control mb-2" rows="2"></textarea>
+            <label class="form-label small">Cellphone No.</label><input type="text" class="form-control">
+        </div>
+        <div class="col-md-6 p-3 border rounded-end">
+            <h6 class="fw-bold text-danger">Bride's Details</h6>
+            <label class="form-label small">Full Name</label><input type="text" class="form-control mb-2">
+            <label class="form-label small">Address</label><textarea class="form-control mb-2" rows="2"></textarea>
+            <label class="form-label small">Cellphone No.</label><input type="text" class="form-control">
+        </div>
+
+        <h6 class="mt-4 border-bottom pb-2">Schedule & Interviews</h6>
+        <div class="col-md-4"><label class="form-label small fw-bold">Date of Wedding</label><input type="date" class="form-control"></div>
+        <div class="col-md-4">
+            <label class="form-label small fw-bold">Time of Wedding</label>
+            <select class="form-select">
+                <option>8:30 AM (Tues-Sat)</option>
+                <option>1:30 PM (Tues-Sat)</option>
+                <option>9:30 AM (Sunday)</option>
+            </select>
+        </div>
+        <div class="col-md-4"><label class="form-label small fw-bold">CANA 101 Seminar Date</label><input type="date" class="form-control"></div>
+
+        <h6 class="mt-4 border-bottom pb-2 text-primary">Requirements Checklist</h6>
+        <div class="col-md-12">
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="form-check form-switch mb-2"><input class="form-check-input" type="checkbox"> <label class="form-check-label small">Baptismal Certificate</label></div>
+                    <div class="form-check form-switch mb-2"><input class="form-check-input" type="checkbox"> <label class="form-check-label small">Confirmation Certificate</label></div>
+                    <div class="form-check form-switch mb-2"><input class="form-check-input" type="checkbox"> <label class="form-check-label small">Birth Certificate (Xerox)</label></div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-check form-switch mb-2"><input class="form-check-input" type="checkbox"> <label class="form-check-label small">Marriage License</label></div>
+                    <div class="form-check form-switch mb-2"><input class="form-check-input" type="checkbox"> <label class="form-check-label small">CENOMAR (Original)</label></div>
+                    <div class="form-check form-switch mb-2"><input class="form-check-input" type="checkbox"> <label class="form-check-label small">Marriage Banns & Permission</label></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+            <div id="form-funeral" class="sacrament-subform hidden">
+    <div class="row g-3">
+        <div class="col-md-8">
+            <label class="form-label small fw-bold">Name of Deceased (Pangalan ng Namatay)</label>
+            <input type="text" class="form-control" placeholder="Buong Pangalan">
+        </div>
+        <div class="col-md-4">
+            <label class="form-label small fw-bold">Age (Edad)</label>
+            <input type="number" class="form-control">
+        </div>
+        
+        <div class="col-md-12">
+            <label class="form-label small fw-bold">Civil Status (Katayuan)</label>
+            <div class="d-flex gap-4 mt-1">
+                <div class="form-check"><input class="form-check-input" type="radio" name="civil-status"> <label class="form-check-label small">May Asawa (Married)</label></div>
+                <div class="form-check"><input class="form-check-input" type="radio" name="civil-status"> <label class="form-check-label small">Walang Asawa (Single)</label></div>
+                <div class="form-check"><input class="form-check-input" type="radio" name="civil-status"> <label class="form-check-label small">Biyuda/Biyudo (Widow/er)</label></div>
+            </div>
+        </div>
+
+        <div class="col-md-12"><label class="form-label small fw-bold">Address (Tirahan)</label><input type="text" class="form-control"></div>
+        
+        <div class="col-md-6"><label class="form-label small fw-bold">Date of Death (Petsa ng Kamatayan)</label><input type="date" class="form-control"></div>
+        <div class="col-md-6"><label class="form-label small fw-bold">Cause of Death (Sanhi ng Kamatayan)</label><input type="text" class="form-control"></div>
+        
+        <div class="col-md-6"><label class="form-label small fw-bold">Date & Time of Burial (Petsa/Oras ng Libing)</label><input type="datetime-local" class="form-control"></div>
+        <div class="col-md-6"><label class="form-label small fw-bold">Place of Burial (Saan Ililibing)</label><input type="text" class="form-control"></div>
+
+        <div class="col-md-12">
+            <label class="form-label small fw-bold">Sacramental Rites</label>
+            <div class="form-check">
+                <input class="form-check-input" type="checkbox" id="lastRites">
+                <label class="form-check-label small" for="lastRites">
+                    Nakapag-kumpisal o napahiran ba ng langis para sa maysakit ng pari? (Received Last Rites)
+                </label>
+            </div>
+        </div>
+
+        <div class="mt-4 p-3 bg-light rounded border">
+            <h6 class="fw-bold small mb-3 text-danger"><i class="bi bi-exclamation-triangle me-2"></i>MGA KARAGDAGANG IMPORMASYON (Health Screening)</h6>
+            <div class="table-responsive">
+                <table class="table table-sm table-borderless align-middle mb-0">
+                    <thead class="text-muted" style="font-size: 0.7rem;">
+                        <tr>
+                            <th>KATANUNGAN (Questions)</th>
+                            <th class="text-center" style="width: 50px;">OO</th>
+                            <th class="text-center" style="width: 50px;">HINDI</th>
+                        </tr>
+                    </thead>
+                    <tbody class="small">
+                        <tr><td>1. Nilagnat ba sa nakaraang 14-21 araw?</td><td class="text-center"><input type="radio" name="q1"></td><td class="text-center"><input type="radio" name="q1"></td></tr>
+                        <tr><td>2. Naipasok (Confine) ba siya sa ospital?</td><td class="text-center"><input type="radio" name="q2"></td><td class="text-center"><input type="radio" name="q2"></td></tr>
+                        <tr><td>3. Nagkaroon ba siya ng ubo?</td><td class="text-center"><input type="radio" name="q3"></td><td class="text-center"><input type="radio" name="q3"></td></tr>
+                        <tr><td>4. Nakaramdam ba siya ng mga sintomas ng flu?</td><td class="text-center"><input type="radio" name="q4"></td><td class="text-center"><input type="radio" name="q4"></td></tr>
+                        <tr><td>5. Nawalan ba siya ng ganang kumain bago namatay?</td><td class="text-center"><input type="radio" name="q5"></td><td class="text-center"><input type="radio" name="q5"></td></tr>
+                        <tr><td>6. Nakaharap ba siya sa may kumpirmadong nag-positibo sa COVID-19?</td><td class="text-center"><input type="radio" name="q6"></td><td class="text-center"><input type="radio" name="q6"></td></tr>
+                        <tr><td>7. Ang pasyente ba ay nanggaling sa lugar na may kasong COVID-19?</td><td class="text-center"><input type="radio" name="q7"></td><td class="text-center"><input type="radio" name="q7"></td></tr>
+                        <tr><td>8. May kasama ba sa bahay na nagpakita ng sintomas?</td><td class="text-center"><input type="radio" name="q8"></td><td class="text-center"><input type="radio" name="q8"></td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+            <div class="mt-4 pt-3 border-top">
+                <button type="submit" class="btn btn-primary px-5">Save Record to Database</button>
+                <button type="reset" class="btn btn-outline-secondary px-4 ms-2">Clear Form</button>
+            </div>
+        </form>
+    </div>
+</section>
+</main>
+    <script>
+        function toggleForm(type) {
+            const formContainer = document.getElementById('sacramentForm');
+            const allSubforms = document.querySelectorAll('.sacrament-subform');
+            
+            if (type === 'none') {
+                formContainer.classList.add('hidden');
+                return;
+            }
+
+            formContainer.classList.remove('hidden');
+            allSubforms.forEach(form => form.classList.add('hidden'));
+            
+            const targetForm = document.getElementById('form-' + type);
+            if (targetForm) targetForm.classList.remove('hidden');
+        }
+
+        // Highlight active nav link based on current page
+        document.addEventListener('DOMContentLoaded', function() {
+            const currentPage = window.location.pathname.split('/').pop() || 'new_record.html';
+            document.querySelectorAll('.nav-link').forEach(link => {
+                if (link.getAttribute('href') === currentPage) {
+                    link.classList.add('active');
+                }
+            });
+        });
+    </script>
+
+</body>
+</html>
