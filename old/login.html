@@ -96,7 +96,7 @@
             <p class="text-muted mb-4 small">Management System</p>
         </div>
 
-        <form action="home.html" method="GET">
+        <form id="loginForm" method="GET">
             <div class="mb-3">
                 <label for="email" class="form-label small fw-bold text-secondary">Email Address</label>
                 <input type="email" class="form-control" id="email" placeholder="name@parish.org" required>
@@ -144,6 +144,20 @@
                 toggleIcon.classList.replace('bi-eye-slash', 'bi-eye');
             }
         }
+
+        document.getElementById('loginForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const email = document.getElementById('email').value;
+            
+            // Simulate Authentication Logic
+            if (email === 'admin@parish.org') {
+                localStorage.setItem('userRole', 'admin');
+                window.location.href = 'admin_dashboard.html';
+            } else {
+                localStorage.setItem('userRole', 'secretary');
+                window.location.href = 'home.html';
+            }
+        });
     </script>
 
 </body>
