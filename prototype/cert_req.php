@@ -4,7 +4,7 @@
 $host = "localhost";
 $dbname = "parish_db";
 $user = "postgres";
-$password = "password";
+$password = "123456";
 
 try {
     $pdo = new PDO(

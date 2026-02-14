@@ -1,17 +1,17 @@
 <?php
-/* session_start();
+session_start();
 
 if (!isset($_SESSION["user_id"])) {
     header("Location: login.php");
     exit;
-} */
+}
 
 /* ---------- DATABASE ---------- */
 
 $host = "localhost";
 $dbname = "parish_db";
 $user = "postgres";
-$password = "password";
+$password = "123456";
 
 try {
     $pdo = new PDO(
@@ -53,6 +53,45 @@ $sql .= " ORDER BY record_date DESC";
 $stmt = $pdo->prepare($sql);
 $stmt->execute($params);
 $records = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+// Handle approval request submission
+$message = "";
+if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['request_approval'])) {
+    $recordId = intval($_POST['record_id'] ?? 0);
+    $purpose = trim($_POST['purpose'] ?? '');
+    $requesterId = $_SESSION['user_id'];
+
+    // get record info
+    $rstmt = $pdo->prepare("SELECT id, full_name, record_type FROM records WHERE id = :id");
+    $rstmt->execute([':id' => $recordId]);
+    $rec = $rstmt->fetch(PDO::FETCH_ASSOC);
+
+    if ($rec) {
+        $ins = $pdo->prepare(
+            "INSERT INTO certificate_requests
+                (requester_id, record_id, full_name, cert_type, purpose, status, requested_at)
+             VALUES
+                (:requester_id, :record_id, :full_name, :cert_type, :purpose, 'pending', now())"
+        );
+
+        $ins->execute([
+            ':requester_id' => $requesterId,
+            ':record_id' => $rec['id'],
+            ':full_name' => $rec['full_name'],
+            ':cert_type' => $rec['record_type'],
+            ':purpose' => $purpose
+        ]);
+
+        $message = 'Approval requested successfully.';
+    } else {
+        $message = 'Record not found.';
+    }
+
+    // Refresh records list
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute($params);
+    $records = $stmt->fetchAll(PDO::FETCH_ASSOC);
+}
 
 $currentPage = basename($_SERVER["PHP_SELF"]);
 ?>
@@ -192,40 +231,66 @@ $currentPage = basename($_SERVER["PHP_SELF"]);
 
         <div class="bg-white rounded-xl shadow-sm p-6">
 
-            <?php if (!$records): ?>
-                <p class="text-gray-500">No records found.</p>
+            <?php if ($message): ?>
+                <div class="mb-4 bg-green-100 text-green-700 p-3 rounded"><?= htmlspecialchars($message) ?></div>
             <?php endif; ?>
 
-            <?php foreach ($records as $r): ?>
+            <?php if (empty($records)): ?>
+                <p class="text-gray-500">No records found.</p>
+            <?php else: ?>
 
-                <div class="border-b py-4 flex justify-between">
+                <?php foreach ($records as $r): ?>
 
-                    <div>
+                    <div class="border-b py-4">
 
-                        <span class="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded">
-                            <?= $r["record_type"] ?>
-                        </span>
+                        <div class="flex justify-between">
 
-                        <h4 class="font-semibold mt-2">
-                            <?= htmlspecialchars($r["full_name"]) ?>
-                        </h4>
+                            <div>
 
-                        <p class="text-sm text-gray-500">
-                            Date:
-                            <?= $r["record_date"]
-                                ? date("M d, Y", strtotime($r["record_date"]))
-                                : "N/A" ?>
-                        </p>
+                                <span class="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded">
+                                    <?= htmlspecialchars($r["record_type"]) ?>
+                                </span>
+
+                                <h4 class="font-semibold mt-2">
+                                    <?= htmlspecialchars($r["full_name"]) ?>
+                                </h4>
+
+                                <p class="text-sm text-gray-500">
+                                    Date:
+                                    <?= $r["record_date"]
+                                        ? date("M d, Y", strtotime($r["record_date"]))
+                                        : "N/A" ?>
+                                </p>
+
+                            </div>
+
+                            <div class="text-right text-sm text-gray-500">
+                                ID: <?= (int)$r["id"] ?>
+                            </div>
+
+                        </div>
+
+                        <div class="mt-3 flex items-center gap-3">
+                            <?php if (!empty($r["digitized"])): ?>
+                                <span class="bg-green-100 text-green-700 px-3 py-1 rounded-full text-xs">Digitized</span>
+                            <?php endif; ?>
+
+                            <?php if (!empty($r["verified"])): ?>
+                                <span class="bg-purple-100 text-purple-700 px-3 py-1 rounded-full text-xs">Verified</span>
+                            <?php endif; ?>
+
+                            <form method="POST" class="d-inline-block ms-auto">
+                                <input type="hidden" name="record_id" value="<?= (int)$r['id'] ?>">
+                                <input type="text" name="purpose" placeholder="Reason (optional)" class="border rounded px-2 py-1 text-sm">
+                                <button type="submit" name="request_approval" class="bg-yellow-500 text-white px-3 py-1 rounded ms-2 text-sm">Request Admin Approval</button>
+                            </form>
+                        </div>
 
                     </div>
 
-                    <div class="text-right text-sm text-gray-500">
-                        ID: <?= $r["id"] ?>
-                    </div>
+                <?php endforeach; ?>
 
-                </div>
-
-            <?php endforeach; ?>
+            <?php endif; ?>
 
         </div>
 
