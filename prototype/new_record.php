@@ -1,10 +1,17 @@
 <?php
+session_start();
+
+if (!isset($_SESSION["user_id"])) {
+    header("Location: login.php");
+    exit;
+}
+
 /* ---------- DATABASE ---------- */
 
 $host = "localhost";
 $dbname = "parish_db";
 $user = "postgres";
-$password = "password";
+$password = "123456";
 
 try {
     $pdo = new PDO(
@@ -27,24 +34,26 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     $name = $_POST["full_name"] ?? "";
     $date = $_POST["record_date"] ?? null;
     $details = json_encode($_POST);
+    $createdBy = $_SESSION["user_id"];
 
     if ($type && $name) {
 
         $stmt = $pdo->prepare("
             INSERT INTO records
-                (record_type, full_name, record_date, details)
+                (record_type, full_name, record_date, details, created_by)
             VALUES
-                (:type, :name, :date, :details)
+                (:type, :name, :date, :details, :created_by)
         ");
 
         $stmt->execute([
-            ":type"    => $type,
-            ":name"    => $name,
-            ":date"    => $date,
-            ":details" => $details
+            ":type"       => $type,
+            ":name"       => $name,
+            ":date"       => $date,
+            ":details"    => $details,
+            ":created_by" => $createdBy
         ]);
 
-        $message = "Record saved successfully.";
+        $message = "Record created successfully. Pending admin approval.";
     }
 }
 

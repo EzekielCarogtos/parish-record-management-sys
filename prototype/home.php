@@ -1,17 +1,17 @@
 <?php
-/* session_start();
+session_start();
 
 if (!isset($_SESSION["user_id"])) {
     header("Location: login.php");
     exit;
-} */
+}
 
 /* ---------- DATABASE CONNECTION ---------- */
 
 $host = "localhost";
 $dbname = "parish_db";
 $user = "postgres";
-$password = "password";
+$password = "123456";
 
 try {
     $pdo = new PDO(

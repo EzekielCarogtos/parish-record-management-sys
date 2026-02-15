@@ -1,12 +1,12 @@
 <?php
-// session_start();
+session_start();
 
 /* ---------- DATABASE ---------- */
 
 $host = "localhost";
 $dbname = "parish_db";
 $user = "postgres";
-$password = "password";
+$password = "123456";
 
 try {
     $pdo = new PDO(
@@ -42,8 +42,14 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
         $_SESSION["user_id"]   = $userData["id"];
         $_SESSION["user_name"] = $userData["name"];
+        $_SESSION["user_role"] = $userData["role"];
 
-        header("Location: home.php");
+        // Redirect based on role column
+        if ($userData["role"] === "admin") {
+            header("Location: admin_dashboard.php");
+        } else {
+            header("Location: home.php");
+        }
         exit;
 
     } else {
