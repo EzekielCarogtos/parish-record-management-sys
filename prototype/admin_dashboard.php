@@ -46,6 +46,17 @@ $stmt = $pdo->query(
 );
 $recentRecords = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
+// Fetch all users for staff management
+$allUsers = [];
+try {
+    $userStmt = $pdo->query(
+        "SELECT id, name, email, created_at FROM users ORDER BY created_at DESC"
+    );
+    $allUsers = $userStmt->fetchAll(PDO::FETCH_ASSOC);
+} catch (PDOException $e) {
+    $allUsers = [];
+}
+
 // Fetch pending certificate requests (if the table exists)
 $pendingRequests = [];
 try {
@@ -337,8 +348,8 @@ $currentPage = basename($_SERVER["PHP_SELF"]);
                             <?php endif; ?>
                         </div>
                         <div class="text-end">
-                            <a href="cert_req.php?approve=<?= $req['id'] ?>" class="btn btn-sm btn-success mb-1">Approve</a>
-                            <a href="cert_req.php?reject=<?= $req['id'] ?>" class="btn btn-sm btn-danger">Reject</a>
+                            <a href="#" class="btn btn-sm btn-success mb-1">Approve</a>
+                            <a href="#" class="btn btn-sm btn-danger">Reject</a>
                         </div>
                     </div>
                     <?php endforeach; ?>
@@ -382,15 +393,23 @@ $currentPage = basename($_SERVER["PHP_SELF"]);
                         </tr>
                     </thead>
                     <tbody>
-                        <tr>
-                            <td class="ps-4 fw-bold">Parish Secretary</td>
-                            <td>secretary@parish.org</td>
-                            <td>Feb 12, 2026</td>
-                            <td class="text-end pe-4">
-                                <button class="btn btn-sm btn-outline-secondary">Edit</button>
-                                <button class="btn btn-sm btn-outline-danger">Deactivate</button>
-                            </td>
-                        </tr>
+                        <?php if (!empty($allUsers)): ?>
+                            <?php foreach ($allUsers as $user): ?>
+                            <tr>
+                                <td class="ps-4 fw-bold"><?= htmlspecialchars($user['name']) ?></td>
+                                <td><?= htmlspecialchars($user['email']) ?></td>
+                                <td><?= date('M d, Y', strtotime($user['created_at'])) ?></td>
+                                <td class="text-end pe-4">
+                                    <button class="btn btn-sm btn-outline-secondary">Edit</button>
+                                    <button class="btn btn-sm btn-outline-danger">Deactivate</button>
+                                </td>
+                            </tr>
+                            <?php endforeach; ?>
+                        <?php else: ?>
+                            <tr>
+                                <td colspan="4" class="text-center py-4 text-muted">No users found.</td>
+                            </tr>
+                        <?php endif; ?>
                     </tbody>
                 </table>
             </div>
@@ -472,10 +491,10 @@ $currentPage = basename($_SERVER["PHP_SELF"]);
                                 <?php endif; ?>
                             </div>
                             <div class="text-end ms-3" style="white-space: nowrap;">
-                                <a href="cert_req.php?approve=<?= $req['id'] ?>" class="btn btn-sm btn-success mb-2">
+                                <a href="#" class="btn btn-sm btn-success mb-2">
                                     <i class="bi bi-check me-1"></i>Approve
                                 </a>
-                                <a href="cert_req.php?reject=<?= $req['id'] ?>" class="btn btn-sm btn-danger">
+                                <a href="#" class="btn btn-sm btn-danger">
                                     <i class="bi bi-x me-1"></i>Reject
                                 </a>
                             </div>
