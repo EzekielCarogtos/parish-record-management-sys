@@ -11,7 +11,7 @@ if (!isset($_SESSION["user_id"])) {
 $host = "localhost";
 $dbname = "parish_db";
 $user = "postgres";
-$password = "123456";
+$password = "pass";
 
 try {
     $pdo = new PDO(
@@ -24,11 +24,14 @@ try {
     die("Database connection failed.");
 }
 
+/* ---------- GET CURRENT YEAR ---------- */
+$currentYear = date("Y");
+
 /* ---------- FILTER LOGIC ---------- */
 
 $name = $_GET["name"] ?? "";
 $type = $_GET["type"] ?? "";
-$year = $_GET["year"] ?? "";
+$year = $_GET["year"] ?? $currentYear; // Default to current year
 
 $sql = "SELECT * FROM records WHERE 1=1";
 $params = [];
@@ -159,6 +162,22 @@ $currentPage = basename($_SERVER["PHP_SELF"]);
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Records</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+        .loading-spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #3498db;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
 </head>
 
 <body class="bg-gray-100 font-sans">
@@ -232,6 +251,7 @@ $currentPage = basename($_SERVER["PHP_SELF"]);
 
         <form
             method="GET"
+            id="searchForm"
             class="bg-white p-6 rounded-xl shadow-sm mb-6 grid md:grid-cols-4 gap-4"
         >
 
@@ -240,18 +260,20 @@ $currentPage = basename($_SERVER["PHP_SELF"]);
                 <input
                     type="text"
                     name="name"
+                    id="nameSearch"
                     value="<?= htmlspecialchars($name) ?>"
                     class="w-full border rounded p-2"
+                    placeholder="Type to search..."
                 >
             </div>
 
             <div>
                 <label class="text-sm font-semibold">Type</label>
-                <select name="type" class="w-full border rounded p-2">
+                <select name="type" id="typeFilter" class="w-full border rounded p-2">
                     <option value="All">All</option>
 
                     <?php foreach (["Baptism", "Confirmation", "Marriage", "Funeral"] as $t): ?>
-                        <option <?= $type === $t ? "selected" : "" ?>>
+                        <option value="<?= $t ?>" <?= $type === $t ? "selected" : "" ?>>
                             <?= $t ?>
                         </option>
                     <?php endforeach; ?>
@@ -264,18 +286,23 @@ $currentPage = basename($_SERVER["PHP_SELF"]);
                 <input
                     type="number"
                     name="year"
+                    id="yearFilter"
                     value="<?= htmlspecialchars($year) ?>"
+                    placeholder="<?= $currentYear ?>"
                     class="w-full border rounded p-2"
+                    min="1900"
+                    max="<?= $currentYear + 10 ?>"
                 >
+                <p class="text-xs text-gray-500 mt-1">Current year: <?= $currentYear ?></p>
             </div>
 
             <div class="flex items-end gap-2">
 
-                <button class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+                <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
                     Search
                 </button>
 
-                <a href="record.php" class="border px-4 py-2 rounded">
+                <a href="record.php" class="border px-4 py-2 rounded" id="resetBtn">
                     Reset
                 </a>
 
@@ -286,71 +313,135 @@ $currentPage = basename($_SERVER["PHP_SELF"]);
         <!-- RECORD LIST -->
 
         <div class="bg-white rounded-xl shadow-sm p-6">
+            <div id="loadingIndicator" class="loading-spinner" style="display: none;"></div>
+            
+            <div id="messageContainer">
+                <?php if ($message): ?>
+                    <div class="mb-4 bg-green-100 text-green-700 p-3 rounded"><?= htmlspecialchars($message) ?></div>
+                <?php endif; ?>
+            </div>
 
-            <?php if ($message): ?>
-                <div class="mb-4 bg-green-100 text-green-700 p-3 rounded"><?= htmlspecialchars($message) ?></div>
-            <?php endif; ?>
-
-            <?php if (empty($records)): ?>
-                <p class="text-gray-500">No records found.</p>
-            <?php else: ?>
-
-                <?php foreach ($records as $r): ?>
-
-                    <div class="border-b py-4">
-
-                        <div class="flex justify-between">
-
-                            <div>
-
-                                <span class="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded">
-                                    <?= htmlspecialchars($r["record_type"]) ?>
-                                </span>
-
-                                <h4 class="font-semibold mt-2">
-                                    <?= htmlspecialchars($r["full_name"]) ?>
-                                </h4>
-
-                                <p class="text-sm text-gray-500">
-                                    Date:
-                                    <?= $r["record_date"]
-                                        ? date("M d, Y", strtotime($r["record_date"]))
-                                        : "N/A" ?>
-                                </p>
-
+            <div id="recordsContainer">
+                <?php if (empty($records)): ?>
+                    <p class="text-gray-500">No records found.</p>
+                <?php else: ?>
+                    <?php foreach ($records as $r): ?>
+                        <div class="record-item border-b py-4" data-record-id="<?= (int)$r['id'] ?>">
+                            <div class="flex justify-between">
+                                <div>
+                                    <span class="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded">
+                                        <?= htmlspecialchars($r["record_type"]) ?>
+                                    </span>
+                                    <h4 class="font-semibold mt-2">
+                                        <?= htmlspecialchars($r["full_name"]) ?>
+                                    </h4>
+                                    <p class="text-sm text-gray-500">
+                                        Date:
+                                        <?= $r["record_date"]
+                                            ? date("M d, Y", strtotime($r["record_date"]))
+                                            : "N/A" ?>
+                                    </p>
+                                </div>
+                                <div class="text-right text-sm text-gray-500">
+                                    ID: <?= (int)$r["id"] ?>
+                                </div>
                             </div>
-
-                            <div class="text-right text-sm text-gray-500">
-                                ID: <?= (int)$r["id"] ?>
+                            <div class="mt-3 flex items-center gap-3">
+                                <?php if (!empty($r["digitized"])): ?>
+                                    <span class="bg-green-100 text-green-700 px-3 py-1 rounded-full text-xs">Digitized</span>
+                                <?php endif; ?>
+                                <?php if (!empty($r["verified"])): ?>
+                                    <span class="bg-purple-100 text-purple-700 px-3 py-1 rounded-full text-xs">Verified</span>
+                                <?php endif; ?>
+                                <form method="POST" class="d-inline-block ms-auto">
+                                    <input type="hidden" name="record_id" value="<?= (int)$r['id'] ?>">
+                                    <input type="text" name="purpose" placeholder="Reason (optional)" class="border rounded px-2 py-1 text-sm">
+                                    <button type="submit" name="request_approval" class="bg-yellow-500 text-white px-3 py-1 rounded ms-2 text-sm">Request Admin Approval</button>
+                                </form>
                             </div>
-
                         </div>
-
-                        <div class="mt-3 flex items-center gap-3">
-                            <?php if (!empty($r["digitized"])): ?>
-                                <span class="bg-green-100 text-green-700 px-3 py-1 rounded-full text-xs">Digitized</span>
-                            <?php endif; ?>
-
-                            <?php if (!empty($r["verified"])): ?>
-                                <span class="bg-purple-100 text-purple-700 px-3 py-1 rounded-full text-xs">Verified</span>
-                            <?php endif; ?>
-
-                            <form method="POST" class="d-inline-block ms-auto">
-                                <input type="hidden" name="record_id" value="<?= (int)$r['id'] ?>">
-                                <input type="text" name="purpose" placeholder="Reason (optional)" class="border rounded px-2 py-1 text-sm">
-                                <button type="submit" name="request_approval" class="bg-yellow-500 text-white px-3 py-1 rounded ms-2 text-sm">Request Admin Approval</button>
-                            </form>
-                        </div>
-
-                    </div>
-
-                <?php endforeach; ?>
-
-            <?php endif; ?>
-
+                    <?php endforeach; ?>
+                <?php endif; ?>
+            </div>
         </div>
 
     </main>
+
+    <script>
+    $(document).ready(function() {
+        let searchTimeout;
+        
+        // Real-time search function
+        function performSearch() {
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(function() {
+                let name = $('#nameSearch').val();
+                let type = $('#typeFilter').val();
+                let year = $('#yearFilter').val();
+                
+                // Show loading indicator
+                $('#loadingIndicator').show();
+                $('#recordsContainer').hide();
+                
+                // Make AJAX request
+                $.ajax({
+                    url: window.location.pathname,
+                    method: 'GET',
+                    data: {
+                        name: name,
+                        type: type,
+                        year: year,
+                        ajax: 1 // Flag to indicate AJAX request
+                    },
+                    success: function(response) {
+                        // Parse the response and update records container
+                        let recordsHtml = $(response).find('#recordsContainer').html();
+                        $('#recordsContainer').html(recordsHtml);
+                        
+                        // Hide loading indicator and show records
+                        $('#loadingIndicator').hide();
+                        $('#recordsContainer').show();
+                        
+                        // Update URL without reloading page
+                        let newUrl = window.location.pathname + '?name=' + encodeURIComponent(name) + 
+                                   '&type=' + encodeURIComponent(type) + 
+                                   '&year=' + encodeURIComponent(year);
+                        window.history.pushState({path: newUrl}, '', newUrl);
+                    },
+                    error: function() {
+                        $('#loadingIndicator').hide();
+                        $('#recordsContainer').show();
+                        alert('Error performing search. Please try again.');
+                    }
+                });
+            }, 500); // Wait 500ms after user stops typing
+        }
+        
+        // Trigger search on input changes
+        $('#nameSearch').on('input', performSearch);
+        $('#typeFilter').on('change', performSearch);
+        $('#yearFilter').on('input', performSearch);
+        
+        // Handle reset button
+        $('#resetBtn').click(function(e) {
+            e.preventDefault();
+            
+            // Reset form values
+            $('#nameSearch').val('');
+            $('#typeFilter').val('All');
+            $('#yearFilter').val('<?= $currentYear ?>');
+            
+            // Perform search with reset values
+            performSearch();
+        });
+        
+        // Handle form submission (prevent default)
+        $('#searchForm').submit(function(e) {
+            e.preventDefault();
+            performSearch();
+        });
+    });
+    </script>
 
 </body>
 </html>

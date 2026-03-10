@@ -11,7 +11,7 @@ if (!isset($_SESSION["user_id"])) {
 $host = "localhost";
 $dbname = "parish_db";
 $user = "postgres";
-$password = "123456";
+$password = "pass";
 
 try {
     $pdo = new PDO(
@@ -23,6 +23,9 @@ try {
 } catch (PDOException $e) {
     die("DB connection failed.");
 }
+
+/* ---------- GET CURRENT DATE ---------- */
+$currentDate = date("Y-m-d");
 
 /* ---------- SAVE RECORD ---------- */
 
@@ -178,6 +181,7 @@ $currentPage = basename($_SERVER["PHP_SELF"]);
                         type="text"
                         name="full_name"
                         class="w-full border rounded p-2"
+                        required
                     >
 
                     <label class="text-sm font-semibold">
@@ -186,8 +190,13 @@ $currentPage = basename($_SERVER["PHP_SELF"]);
                     <input
                         type="date"
                         name="record_date"
+                        id="record_date"
                         class="w-full border rounded p-2"
+                        value="<?= $currentDate ?>"
+                        min="<?= $currentDate ?>"
+                        required
                     >
+                    <p class="text-xs text-gray-500 mt-1">Date cannot be in the past</p>
 
                 </div>
 
@@ -254,6 +263,7 @@ $currentPage = basename($_SERVER["PHP_SELF"]);
                     <button
                         type="reset"
                         class="border px-5 py-2 rounded ml-2"
+                        onclick="resetToCurrentDate()"
                     >
                         Clear
                     </button>
@@ -285,8 +295,55 @@ $currentPage = basename($_SERVER["PHP_SELF"]);
                 document
                     .getElementById("form-" + type)
                     .classList.remove("hidden");
+                
+                // Make common fields required when type is selected
+                document.querySelector('input[name="full_name"]').required = true;
+                document.querySelector('input[name="record_date"]').required = true;
             }
         }
+
+        // Function to reset date to current date when form is cleared
+        function resetToCurrentDate() {
+            const today = '<?= $currentDate ?>';
+            document.getElementById('record_date').value = today;
+            
+            // Also clear other fields but keep date as today
+            document.querySelector('input[name="full_name"]').value = '';
+            
+            // Clear sacrament-specific fields
+            document.querySelectorAll('input[name="birth_place"], input[name="parents"], input[name="baptized_parish"], input[name="spouse"], input[name="cause"]').forEach(input => {
+                input.value = '';
+            });
+            
+            // Reset select to default
+            document.querySelector('select[name="record_type"]').value = '';
+            
+            // Hide all forms
+            document.getElementById("commonFields").classList.add("hidden");
+            const forms = ["Baptism", "Confirmation", "Marriage", "Funeral"];
+            forms.forEach(f => {
+                document.getElementById("form-" + f).classList.add("hidden");
+            });
+        }
+
+        // Additional validation on form submit
+        document.getElementById('recordForm').addEventListener('submit', function(e) {
+            const dateInput = document.getElementById('record_date');
+            const selectedDate = new Date(dateInput.value);
+            const today = new Date('<?= $currentDate ?>');
+            today.setHours(0, 0, 0, 0);
+            
+            if (selectedDate < today) {
+                e.preventDefault();
+                alert('Please select a current or future date. Past dates are not allowed.');
+                dateInput.focus();
+            }
+        });
+
+        // Initialize form with today's date
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('record_date').value = '<?= $currentDate ?>';
+        });
     </script>
 
 </body>

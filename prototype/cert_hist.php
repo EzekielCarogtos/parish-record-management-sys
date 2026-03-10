@@ -11,7 +11,7 @@ if (!isset($_SESSION["user_id"])) {
 $host = "localhost";
 $dbname = "parish_db";
 $user = "postgres";
-$password = "123456";
+$password = "pass";
 
 try {
     $pdo = new PDO(

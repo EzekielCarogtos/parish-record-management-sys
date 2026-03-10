@@ -6,7 +6,7 @@ session_start();
 $host = "localhost";
 $dbname = "parish_db";
 $user = "postgres";
-$password = "123456";
+$password = "pass";
 
 try {
     $pdo = new PDO(
